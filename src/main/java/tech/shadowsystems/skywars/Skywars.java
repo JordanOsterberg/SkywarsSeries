@@ -12,6 +12,7 @@ public final class Skywars extends JavaPlugin {
 
         getConfig().options().copyDefaults(true);
         getConfig().options().copyHeader(true);
+        saveDefaultConfig();
     }
 
     @Override
