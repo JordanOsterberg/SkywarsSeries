@@ -1,0 +1,5 @@
+name: Skywars
+version: ${project.version}
+main: tech.shadowsystems.skywars.Skywars
+authors: [Shadow Technical Systems LLC]
+website: www.shadowsystems.tech
