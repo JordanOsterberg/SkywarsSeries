@@ -1,2 +1,4 @@
 # Turning this to true will force the server to only run one game. This is optimal for bungee mode.
 single-server-mode: false
+# If this is -1, unlimited games will be allowed to operate
+max-games: -1

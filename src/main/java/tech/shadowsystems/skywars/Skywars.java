@@ -1,7 +1,7 @@
 package tech.shadowsystems.skywars;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import tech.shadowsystems.skywars.constructors.Game;
+import tech.shadowsystems.skywars.object.Game;
 import tech.shadowsystems.skywars.data.DataHandler;
 
 import java.util.HashSet;
@@ -24,7 +24,7 @@ public final class Skywars extends JavaPlugin {
         if (getConfig().getBoolean("single-server-mode")) { // If we're using single server
             gamesLimit = 1;
         } else {
-            gamesLimit = -1;
+            gamesLimit = getConfig().getInt("max-games");
         }
 
         if (DataHandler.getInstance().getGameInfo().getConfigurationSection("games") != null) {
