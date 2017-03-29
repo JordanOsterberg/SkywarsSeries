@@ -12,6 +12,7 @@ public class GamePlayer {
     private Player player = null;
     private GameTeam team = null;
     private GamePlayerState gamePlayerState;
+    private Location spawnPoint;
 
     public GamePlayer(Player player) {
         this.player = player;
@@ -42,7 +43,11 @@ public class GamePlayer {
     }
 
     public void teleport(Location location) {
-        if (isTeamClass()) {
+        if (location == null) {
+            return;
+        }
+
+        if (!isTeamClass()) {
             getPlayer().teleport(location);
         } else {
             getTeam().teleport(location);

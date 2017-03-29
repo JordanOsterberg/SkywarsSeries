@@ -1,6 +1,7 @@
 package tech.shadowsystems.skywars;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import tech.shadowsystems.skywars.listeners.PlayerJoin;
 import tech.shadowsystems.skywars.object.Game;
 import tech.shadowsystems.skywars.data.DataHandler;
 
@@ -36,6 +37,8 @@ public final class Skywars extends JavaPlugin {
             // We can assume that no games are created
             getLogger().warning("No games have been created. Please create one using the creation command.");
         }
+
+        getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
     }
 
     @Override
@@ -56,6 +59,16 @@ public final class Skywars extends JavaPlugin {
         games.add(game);
 
         return true;
+    }
+
+    public Game getGame(String gameName) {
+        for (Game game : games) {
+            if (game.getDisplayName().equalsIgnoreCase(gameName)) {
+                return game;
+            }
+        }
+
+        return null;
     }
 
 }

@@ -5,10 +5,13 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import tech.shadowsystems.skywars.Skywars;
 import tech.shadowsystems.skywars.data.DataHandler;
+import tech.shadowsystems.skywars.tasks.GameCountdownTask;
 
-import java.util.Set;
+import java.util.*;
 
 /**
  * Copyright © 2016 Jordan Osterberg and Shadow Technical Systems LLC. All rights reserved. Please email jordan.osterberg@shadowsystems.tech for usage rights and other information.
@@ -20,7 +23,7 @@ public class Game {
     private int maxPlayers;
     private int minPlayers;
     private World world;
-    private Set<Location> spawnPoints;
+    private List<Location> spawnPoints;
     private boolean isTeamGame;
     private Location lobbyPoint;
 
@@ -28,6 +31,7 @@ public class Game {
     private Set<GamePlayer> players;
     private Set<GamePlayer> spectators;
     private GameState gameState = GameState.LOBBY;
+    private Map<GamePlayer, Location> gamePlayerToSpawnPoint = new HashMap<>();
 
     public Game(String gameName) {
         FileConfiguration fileConfiguration = DataHandler.getInstance().getGameInfo();
@@ -47,6 +51,8 @@ public class Game {
             Skywars.getInstance().getLogger().severe("Failed to load lobbyPoint with metadata " + fileConfiguration.getString("games." + gameName + ".lobbyPoint") + " for gameName: '" + gameName + "'. ExceptionType: " + ex);
         }
 
+        this.spawnPoints = new ArrayList<>();
+
         for (String point : fileConfiguration.getStringList("games." + gameName + ".spawnPoints")) {
             // X:0,Y:0,Z:0
             try {
@@ -60,7 +66,10 @@ public class Game {
                 Skywars.getInstance().getLogger().severe("Failed to load spawnPoint with metadata " + point + " for gameName: '" + gameName + "'. ExceptionType: " + ex);
             }
         }
+
         this.isTeamGame = fileConfiguration.getBoolean("games." + gameName + ".isTeamGame");
+        this.players = new HashSet<>();
+        this.spectators = new HashSet<>();
     }
 
     public boolean joinGame(GamePlayer gamePlayer) {
@@ -80,7 +89,7 @@ public class Game {
 
             if (getPlayers().size() == getMinPlayers() && !isState(GameState.STARTING)) {
                 setState(GameState.STARTING);
-                sendMessage("&a[!] The game will begin in 20 seconds...");
+                sendMessage("&a[*] The game will begin in 20 seconds...");
                 startCountdown();
             }
 
@@ -93,7 +102,18 @@ public class Game {
     }
 
     public void startCountdown() {
-        // TODO:
+        int id = 0;
+        for (GamePlayer gamePlayer : getPlayers()) {
+            try {
+                gamePlayerToSpawnPoint.put(gamePlayer, spawnPoints.get(id));
+                gamePlayer.teleport(spawnPoints.get(id));
+                id += 1;
+            } catch (IndexOutOfBoundsException ex) {
+                Skywars.getInstance().getLogger().severe("Not enough spawn points to satisfy game needs (Game is " + getDisplayName() + ")");
+            }
+        }
+
+        new GameCountdownTask(this).runTaskTimer(Skywars.getInstance(), 0, 20);
     }
 
     public boolean isState(GameState state) {
