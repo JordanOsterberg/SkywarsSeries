@@ -1,5 +1,6 @@
 package tech.shadowsystems.skywars.listeners;
 
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,6 +18,8 @@ public class PlayerJoin implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+
+        player.setGameMode(GameMode.ADVENTURE);
 
         Game exampleGame = Skywars.getInstance().getGame("example");
         if (exampleGame == null) {

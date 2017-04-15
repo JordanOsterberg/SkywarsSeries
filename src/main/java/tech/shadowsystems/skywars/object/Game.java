@@ -159,7 +159,7 @@ public class Game {
     }
 
     public enum GameState {
-        LOBBY, STARTING, ACTIVE, DEATHMATCH, ENDING
+        LOBBY, STARTING, PREPARATION, ACTIVE, DEATHMATCH, ENDING
     }
 
 }

@@ -71,6 +71,9 @@ public final class Skywars extends JavaPlugin {
         return null;
     }
 
+    public Set<Game> getGames() {
+        return games;
+    }
 }
 
 /*

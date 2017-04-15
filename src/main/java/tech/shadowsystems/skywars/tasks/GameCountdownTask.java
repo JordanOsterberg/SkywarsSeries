@@ -21,14 +21,15 @@ public class GameCountdownTask extends BukkitRunnable {
 
         if (time == 0) {
             // Start
-            game.sendMessage("&6[!] The game has started!");
+            game.sendMessage("&6[!] You've been teleported.");
 
             cancel();
             // TODO: Run game task
         } else {
             if (time == 15 || time == 10 || time == 5) {
-                game.sendMessage("&a[*] The game will begin in " + time + " seconds");
+                game.sendMessage("&a[*] You'll be teleported to the game in " + time + " seconds");
             }
         }
     }
+
 }
