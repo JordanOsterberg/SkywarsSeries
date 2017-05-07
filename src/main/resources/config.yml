@@ -2,3 +2,9 @@
 single-server-mode: false
 # If this is -1, unlimited games will be allowed to operate
 max-games: -1
+# Lobby point is where players will be teleported when they join the server IF single server mode is true
+lobby-point:
+  x: 0
+  y: 120
+  z: 0
+  world: "world"

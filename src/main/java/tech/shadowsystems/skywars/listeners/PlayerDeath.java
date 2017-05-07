@@ -1,5 +1,6 @@
 package tech.shadowsystems.skywars.listeners;
 
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,23 +22,29 @@ public class PlayerDeath implements Listener {
             for (GamePlayer gamePlayer : game.getPlayers()) {
                 if (gamePlayer.isTeamClass()) {
                     if (gamePlayer.getTeam().isPlayer(player)) {
-                        handle(event);
+                        handle(event, game);
                     }
                 } else {
                     if (gamePlayer.getPlayer() == player) {
-                        handle(event);
+                        handle(event, game);
                     }
                 }
             }
         }
     }
 
-    private void handle(PlayerDeathEvent event) {
+    private void handle(PlayerDeathEvent event, Game game) {
         Player player = event.getEntity();
+        GamePlayer gamePlayer = game.getGamePlayer(player);
+
         event.setDeathMessage(null);
         player.setMaxHealth(20);
         player.setHealth(player.getMaxHealth());
-        // TODO: Finish handling
+        player.setGameMode(GameMode.SPECTATOR);
+
+        if (gamePlayer != null) {
+            game.switchToSpectator(gamePlayer);
+        }
     }
 
 }

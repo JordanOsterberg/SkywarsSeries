@@ -1,6 +1,8 @@
 package tech.shadowsystems.skywars.listeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,7 +21,30 @@ public class PlayerJoin implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        player.setGameMode(GameMode.ADVENTURE);
+        if (!Skywars.getInstance().getConfig().getBoolean("single-server-mode")) {
+            player.setGameMode(GameMode.ADVENTURE);
+            player.getInventory().clear();
+            player.setMaxHealth(20);
+            player.setHealth(player.getMaxHealth());
+            player.setFoodLevel(25);
+
+            int x = 0;
+            int y = 0;
+            int z = 0;
+            String world;
+
+            try {
+                x = Skywars.getInstance().getConfig().getInt("lobby-point.x");
+                y = Skywars.getInstance().getConfig().getInt("lobby-point.y");
+                z = Skywars.getInstance().getConfig().getInt("lobby-point.z");
+                world = Skywars.getInstance().getConfig().getString("lobby-point.world");
+                player.teleport(new Location(Bukkit.getWorld(world), x, y, z));
+            } catch (Exception ex) {
+                Skywars.getInstance().getLogger().severe("Lobby point failed with exception: " + ex);
+                ex.printStackTrace();
+            }
+
+        }
 
         Game exampleGame = Skywars.getInstance().getGame("example");
         if (exampleGame == null) {

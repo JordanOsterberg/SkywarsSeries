@@ -1,6 +1,7 @@
 package tech.shadowsystems.skywars.tasks;
 
 import org.bukkit.scheduler.BukkitRunnable;
+import tech.shadowsystems.skywars.Skywars;
 import tech.shadowsystems.skywars.object.Game;
 
 /**
@@ -24,7 +25,7 @@ public class GameCountdownTask extends BukkitRunnable {
             game.sendMessage("&6[!] You've been teleported.");
 
             cancel();
-            // TODO: Run game task
+            Skywars.getInstance().getServer().getScheduler().runTask(Skywars.getInstance(), new GameRunTask(game));
         } else {
             if (time == 15 || time == 10 || time == 5) {
                 game.sendMessage("&a[*] You'll be teleported to the game in " + time + " seconds");

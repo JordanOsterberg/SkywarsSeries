@@ -1,10 +1,10 @@
 package tech.shadowsystems.skywars.object;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.WorldCreator;
+import org.bukkit.*;
+import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import tech.shadowsystems.skywars.Skywars;
@@ -26,12 +26,15 @@ public class Game {
     private List<Location> spawnPoints;
     private boolean isTeamGame;
     private Location lobbyPoint;
+    private List<ItemStack> normalItems;
+    private List<ItemStack> rareItems;
 
     // Active game information
     private Set<GamePlayer> players;
     private Set<GamePlayer> spectators;
     private GameState gameState = GameState.LOBBY;
     private Map<GamePlayer, Location> gamePlayerToSpawnPoint = new HashMap<>();
+    private Set<Chest> opened;
 
     public Game(String gameName) {
         FileConfiguration fileConfiguration = DataHandler.getInstance().getGameInfo();
@@ -64,6 +67,35 @@ public class Game {
                 spawnPoints.add(location);
             } catch (Exception ex) {
                 Skywars.getInstance().getLogger().severe("Failed to load spawnPoint with metadata " + point + " for gameName: '" + gameName + "'. ExceptionType: " + ex);
+            }
+        }
+
+        this.normalItems = new ArrayList<>();
+        this.rareItems = new ArrayList<>();
+
+        for (String item : fileConfiguration.getStringList("games." + gameName + ".normalItems")) {
+            try {
+                Material material = Material.valueOf(item);
+                int count = 1;
+                if (material == Material.ARROW) {
+                    count = 5;
+                }
+                this.normalItems.add(new ItemStack(material, count));
+            } catch (Exception ex) {
+                Skywars.getInstance().getLogger().severe(gameName + " tried to load normal item that doesn't exist: " + item);
+            }
+        }
+
+        for (String item : fileConfiguration.getStringList("games." + gameName + ".rareItems")) {
+            try {
+                Material material = Material.valueOf(item);
+                int count = 1;
+                if (material == Material.ARROW) {
+                    count = 15;
+                }
+                this.rareItems.add(new ItemStack(material, count));
+            } catch (Exception ex) {
+                Skywars.getInstance().getLogger().severe(gameName + " tried to load rare item that doesn't exist: " + item);
             }
         }
 
@@ -152,10 +184,51 @@ public class Game {
         return isTeamGame;
     }
 
+    public GamePlayer getGamePlayer(Player player) {
+        for (GamePlayer gamePlayer : getPlayers()) {
+            if (gamePlayer.isTeamClass()) {
+                // Handle
+            } else {
+                if (gamePlayer.getPlayer() == player) {
+                    return gamePlayer;
+                }
+            }
+        }
+
+        for (GamePlayer gamePlayer : getSpectators()) {
+            if (gamePlayer.isTeamClass()) {
+                // Handle
+            } else {
+                if (gamePlayer.getPlayer() == player) {
+                    return gamePlayer;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public void sendMessage(String message) {
         for (GamePlayer gamePlayer : getPlayers()) {
             gamePlayer.sendMessage(message);
         }
+    }
+
+    public void switchToSpectator(GamePlayer gamePlayer) {
+        getPlayers().remove(gamePlayer);
+        getSpectators().add(gamePlayer);
+    }
+
+    public Set<Chest> getOpened() {
+        return opened;
+    }
+
+    public List<ItemStack> getRareItems() {
+        return rareItems;
+    }
+
+    public List<ItemStack> getNormalItems() {
+        return normalItems;
     }
 
     public enum GameState {

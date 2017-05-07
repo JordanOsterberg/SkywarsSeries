@@ -1,7 +1,10 @@
 package tech.shadowsystems.skywars;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import tech.shadowsystems.skywars.listeners.FoodLevel;
+import tech.shadowsystems.skywars.listeners.PlayerDeath;
 import tech.shadowsystems.skywars.listeners.PlayerJoin;
+import tech.shadowsystems.skywars.listeners.PlayerLeave;
 import tech.shadowsystems.skywars.object.Game;
 import tech.shadowsystems.skywars.data.DataHandler;
 
@@ -39,6 +42,9 @@ public final class Skywars extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new PlayerJoin(), this);
+        getServer().getPluginManager().registerEvents(new PlayerLeave(), this);
+        getServer().getPluginManager().registerEvents(new PlayerDeath(), this);
+        getServer().getPluginManager().registerEvents(new FoodLevel(), this);
     }
 
     @Override
@@ -77,5 +83,8 @@ public final class Skywars extends JavaPlugin {
 }
 
 /*
-- Bungee Support AND one server support
+- End of game
+- Border?
+- Basic listeners (block place, etc)
+- Commands
  */
