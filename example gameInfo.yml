@@ -1,0 +1,39 @@
+games:
+  example:
+    displayName: "Example"
+    maxPlayers: 2
+    minPlayers: 1
+    worldName: "example"
+    lobbyPoint: "X:400, Y:65, Z:187"
+    spawnPoints:
+      - "X:399, Y:62, Z:236"
+      - "X:430, Y:68, Z:216"
+      - "X:447, Y:62, Z:189"
+      - "X:428, Y:68, Z:157"
+      - "X:403, Y:62, Z:139"
+      - "X:372, Y:68, Z:158"
+      - "X:353, Y:62, Z:187"
+      - "X:372, Y:68, Z:215"
+    isTeamGame: false
+    normalItems:
+      - STONE_SWORD
+      - BOW
+      - ARROW
+      - APPLE
+      - COOKED_BEEF
+      - LEATHER_CHESTPLATE
+      - LEATHER_LEGGINGS
+      - LEATHER_HELMET
+      - FLINT_AND_STEEL
+      - WOOD
+      - COBBLESTONE
+    rareItems:
+      - DIAMOND_SWORD
+      - COOKED_BEEF
+      - IRON_CHESTPLATE
+      - IRON_LEGGINGS
+      - IRON_HELMET
+      - DIAMOND
+      - TNT
+      - GOLD_BLOCK
+    
