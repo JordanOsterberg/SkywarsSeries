@@ -20,16 +20,22 @@ public class ChestInteract implements Listener {
     public void onChestOpen(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
-        for (Game game : Skywars.getInstance().getGames()) {
-            for (GamePlayer gamePlayer : game.getPlayers()) {
-                if (!gamePlayer.isTeamClass()) {
-                    if (gamePlayer.getPlayer() == player) {
-                        handle(event, game);
-                    }
-                } else {
-                    if (gamePlayer.getTeam().isPlayer(player)) {
-                        handle(event, game);
-                    }
+        Game game = Skywars.getInstance().getGame(player);
+        if (game != null && game.getGamePlayer(player) != null) {
+            if (game.isState(Game.GameState.LOBBY) || game.isState(Game.GameState.PREPARATION) || game.isState(Game.GameState.STARTING)) {
+                event.setCancelled(true);
+                return;
+            }
+
+            GamePlayer gamePlayer = game.getGamePlayer(player);
+
+            if (gamePlayer.isTeamClass()) {
+                if (gamePlayer.getTeam().isPlayer(player)) {
+                    handle(event, game);
+                }
+            } else {
+                if (gamePlayer.getPlayer() == player) {
+                    handle(event, game);
                 }
             }
         }
@@ -39,22 +45,27 @@ public class ChestInteract implements Listener {
         if (event.hasBlock() && event.getClickedBlock() != null && event.getClickedBlock().getState() instanceof Chest) {
             Chest chest = (Chest) event.getClickedBlock().getState();
 
-            if (game.getOpened().contains(chest)) {
+            if (game.getOpened().contains(chest) || game.getRareItems().size() == 0 || game.getNormalItems().size() == 0) {
                 return;
             }
 
-            Random random = new Random();
-            if (random.nextFloat() < 0.20) {
-                int toFill = random.nextInt(8);
+            chest.getBlockInventory().clear();
+
+            if (new Random().nextFloat() < 0.20) {
+                int toFill = new Random().nextInt(8);
                 for (int x = 0; x < toFill; x++) {
-                    chest.getBlockInventory().addItem(game.getRareItems().get(random.nextInt(game.getRareItems().size())));
+                    int selected = new Random().nextInt(game.getRareItems().size());
+                    chest.getBlockInventory().addItem(game.getRareItems().get(selected));
                 }
             } else {
-                int toFill = random.nextInt(5);
+                int toFill = new Random().nextInt(5);
                 for (int x = 0; x < toFill; x++) {
-                    chest.getBlockInventory().addItem(game.getNormalItems().get(random.nextInt(game.getNormalItems().size())));
+                    int selected = new Random().nextInt(game.getNormalItems().size());
+                    chest.getBlockInventory().addItem(game.getNormalItems().get(selected));
                 }
             }
+
+            game.getOpened().add(chest);
         }
     }
 

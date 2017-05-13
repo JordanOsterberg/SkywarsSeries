@@ -5,8 +5,7 @@ import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import tech.shadowsystems.skywars.RollbackHandler;
 import tech.shadowsystems.skywars.Skywars;
 import tech.shadowsystems.skywars.data.DataHandler;
 import tech.shadowsystems.skywars.tasks.GameCountdownTask;
@@ -30,11 +29,12 @@ public class Game {
     private List<ItemStack> rareItems;
 
     // Active game information
-    private Set<GamePlayer> players;
+    private List<GamePlayer> players;
     private Set<GamePlayer> spectators;
     private GameState gameState = GameState.LOBBY;
     private Map<GamePlayer, Location> gamePlayerToSpawnPoint = new HashMap<>();
     private Set<Chest> opened;
+    private boolean movementFrozen = false;
 
     public Game(String gameName) {
         FileConfiguration fileConfiguration = DataHandler.getInstance().getGameInfo();
@@ -42,7 +42,10 @@ public class Game {
         this.displayName = fileConfiguration.getString("games." + gameName + ".displayName");
         this.maxPlayers = fileConfiguration.getInt("games." + gameName + ".maxPlayers");
         this.minPlayers = fileConfiguration.getInt("games." + gameName + ".minPlayers");
-        this.world = Bukkit.createWorld(new WorldCreator(fileConfiguration.getString("games." + gameName + ".worldName")));
+
+        RollbackHandler.getRollbackHandler().rollback(fileConfiguration.getString("games." + gameName + ".worldName"));
+
+        this.world = Bukkit.createWorld(new WorldCreator(fileConfiguration.getString("games." + gameName + ".worldName") + "_active"));
 
         try {
             String[] values = fileConfiguration.getString("games." + gameName + ".lobbyPoint").split(","); // [X:0, Y:0, Z:0]
@@ -70,6 +73,8 @@ public class Game {
             }
         }
 
+        this.opened = new HashSet<>();
+
         this.normalItems = new ArrayList<>();
         this.rareItems = new ArrayList<>();
 
@@ -79,6 +84,12 @@ public class Game {
                 int count = 1;
                 if (material == Material.ARROW) {
                     count = 5;
+                } else if (material == Material.COBBLESTONE) {
+                    count = 16;
+                } else if (material == Material.WOOD) {
+                    count = 32;
+                } else if (material == Material.GOLD_BLOCK) {
+                    count = 6;
                 }
                 this.normalItems.add(new ItemStack(material, count));
             } catch (Exception ex) {
@@ -92,6 +103,12 @@ public class Game {
                 int count = 1;
                 if (material == Material.ARROW) {
                     count = 15;
+                } else if (material == Material.COBBLESTONE) {
+                    count = 16;
+                } else if (material == Material.WOOD) {
+                    count = 32;
+                } else if (material == Material.GOLD_BLOCK) {
+                    count = 6;
                 }
                 this.rareItems.add(new ItemStack(material, count));
             } catch (Exception ex) {
@@ -100,7 +117,7 @@ public class Game {
         }
 
         this.isTeamGame = fileConfiguration.getBoolean("games." + gameName + ".isTeamGame");
-        this.players = new HashSet<>();
+        this.players = new ArrayList<>();
         this.spectators = new HashSet<>();
     }
 
@@ -119,33 +136,55 @@ public class Game {
             gamePlayer.teleport(isState(GameState.LOBBY) ? lobbyPoint : null);
             sendMessage("&a[+] &6" + gamePlayer.getName() + " &7(" + getPlayers().size() + "&a/&7" + getMaxPlayers() + ")");
 
+            gamePlayer.getPlayer().getInventory().clear();
+            gamePlayer.getPlayer().getInventory().setArmorContents(null);
+            gamePlayer.getPlayer().setGameMode(GameMode.ADVENTURE);
+            gamePlayer.getPlayer().setHealth(gamePlayer.getPlayer().getMaxHealth());
+
             if (getPlayers().size() == getMinPlayers() && !isState(GameState.STARTING)) {
                 setState(GameState.STARTING);
                 sendMessage("&a[*] The game will begin in 20 seconds...");
                 startCountdown();
             }
 
+            Skywars.getInstance().setGame(gamePlayer.getPlayer(), this);
             return true;
         } else {
-            getSpectators().add(gamePlayer);
-            // TODO: process as spectator
+            activateSpectatorSettings(gamePlayer.getPlayer());
+            Skywars.getInstance().setGame(gamePlayer.getPlayer(), this);
             return true;
         }
     }
 
+    public void activateSpectatorSettings(Player player) {
+        GamePlayer gamePlayer = getGamePlayer(player);
+
+        player.setMaxHealth(20);
+        player.setHealth(player.getMaxHealth());
+        player.setGameMode(GameMode.SPECTATOR);
+
+        if (gamePlayer != null) {
+            switchToSpectator(gamePlayer);
+        }
+    }
+
     public void startCountdown() {
+        new GameCountdownTask(this).runTaskTimer(Skywars.getInstance(), 0, 20);
+    }
+
+    public void assignSpawnPositions() {
         int id = 0;
         for (GamePlayer gamePlayer : getPlayers()) {
             try {
                 gamePlayerToSpawnPoint.put(gamePlayer, spawnPoints.get(id));
                 gamePlayer.teleport(spawnPoints.get(id));
                 id += 1;
+                gamePlayer.getPlayer().setGameMode(GameMode.SURVIVAL);
+                gamePlayer.getPlayer().setHealth(gamePlayer.getPlayer().getMaxHealth());
             } catch (IndexOutOfBoundsException ex) {
                 Skywars.getInstance().getLogger().severe("Not enough spawn points to satisfy game needs (Game is " + getDisplayName() + ")");
             }
         }
-
-        new GameCountdownTask(this).runTaskTimer(Skywars.getInstance(), 0, 20);
     }
 
     public boolean isState(GameState state) {
@@ -172,7 +211,7 @@ public class Game {
         return displayName;
     }
 
-    public Set<GamePlayer> getPlayers() {
+    public List<GamePlayer> getPlayers() {
         return players;
     }
 
@@ -229,6 +268,18 @@ public class Game {
 
     public List<ItemStack> getNormalItems() {
         return normalItems;
+    }
+
+    public void setMovementFrozen(boolean movementFrozen) {
+        this.movementFrozen = movementFrozen;
+    }
+
+    public boolean isMovementFrozen() {
+        return movementFrozen;
+    }
+
+    public World getWorld() {
+        return world;
     }
 
     public enum GameState {

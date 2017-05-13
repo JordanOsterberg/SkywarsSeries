@@ -1,6 +1,5 @@
 package tech.shadowsystems.skywars.listeners;
 
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,16 +17,17 @@ public class PlayerDeath implements Listener {
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
 
-        for (Game game : Skywars.getInstance().getGames()) {
-            for (GamePlayer gamePlayer : game.getPlayers()) {
-                if (gamePlayer.isTeamClass()) {
-                    if (gamePlayer.getTeam().isPlayer(player)) {
-                        handle(event, game);
-                    }
-                } else {
-                    if (gamePlayer.getPlayer() == player) {
-                        handle(event, game);
-                    }
+        Game game = Skywars.getInstance().getGame(player);
+        if (game != null && game.getGamePlayer(player) != null) {
+            GamePlayer gamePlayer = game.getGamePlayer(player);
+
+            if (gamePlayer.isTeamClass()) {
+                if (gamePlayer.getTeam().isPlayer(player)) {
+                    handle(event, game);
+                }
+            } else {
+                if (gamePlayer.getPlayer() == player) {
+                    handle(event, game);
                 }
             }
         }
@@ -35,15 +35,25 @@ public class PlayerDeath implements Listener {
 
     private void handle(PlayerDeathEvent event, Game game) {
         Player player = event.getEntity();
-        GamePlayer gamePlayer = game.getGamePlayer(player);
+
+        if (!game.isState(Game.GameState.ACTIVE) && !game.isState(Game.GameState.DEATHMATCH)) {
+            return;
+        }
 
         event.setDeathMessage(null);
-        player.setMaxHealth(20);
-        player.setHealth(player.getMaxHealth());
-        player.setGameMode(GameMode.SPECTATOR);
+        game.activateSpectatorSettings(player);
 
-        if (gamePlayer != null) {
-            game.switchToSpectator(gamePlayer);
+        if (game.getPlayers().size() <= 1) {
+            try {
+                GamePlayer winner = game.getPlayers().get(0);
+                if (winner.isTeamClass()) {
+                    game.sendMessage("&a"); // Broadcast team win
+                } else {
+                    game.sendMessage("&a" + winner.getName() + " won the game!"); // Indiv win
+                }
+
+                game.setState(Game.GameState.ENDING);
+            } catch (IndexOutOfBoundsException ignored) {}
         }
     }
 

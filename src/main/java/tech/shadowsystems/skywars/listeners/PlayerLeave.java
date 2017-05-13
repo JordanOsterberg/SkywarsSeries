@@ -16,16 +16,20 @@ public class PlayerLeave implements Listener {
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        for (Game game : Skywars.getInstance().getGames()) {
-            for (GamePlayer gamePlayer : game.getPlayers()) {
-                if (gamePlayer.isTeamClass()) {
-                    if (gamePlayer.getTeam().isPlayer(player)) {
-                        player.damage(player.getMaxHealth()); // Kill player to make game process this as a death
-                    }
-                } else {
-                    if (gamePlayer.getPlayer() == player) {
-                        player.damage(player.getMaxHealth()); // Kill player to make game process this as a death
-                    }
+
+        event.setQuitMessage(null);
+
+        Game game = Skywars.getInstance().getGame(player);
+        if (game != null && game.getGamePlayer(player) != null) {
+            GamePlayer gamePlayer = game.getGamePlayer(player);
+
+            if (gamePlayer.isTeamClass()) {
+                if (gamePlayer.getTeam().isPlayer(player)) {
+                    player.damage(player.getMaxHealth()); // Kill player to make game process this as a death
+                }
+            } else {
+                if (gamePlayer.getPlayer() == player) {
+                    player.damage(player.getMaxHealth()); // Kill player to make game process this as a death
                 }
             }
         }
