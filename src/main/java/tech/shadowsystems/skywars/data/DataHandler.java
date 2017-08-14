@@ -19,6 +19,7 @@ public class DataHandler {
         this.gameInfoFile = new File(Skywars.getInstance().getDataFolder(), "gameInfo.yml");
         if (!this.gameInfoFile.exists()) {
             try {
+                this.gameInfoFile.getParentFile().mkdirs();
                 this.gameInfoFile.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
